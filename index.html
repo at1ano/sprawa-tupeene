@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sprawa Tupeene'a</title>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Limelight&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Układ: wąska teczka akt sprawy — kartki dossier, telegramy maszynowe, czerwone pieczęcie; jeden rozdział = jedna warstwa */
+:root{
+  --papier:#e8ebe6; --karta:#f7f8f5; --karta2:#eef1ec; --linia:#c4cbc3;
+  --atrament:#1c2230; --szary:#5d6672;
+  --pieczec:#b3302a; --mosiadz:#8a6a1f; --zielen:#2f7a55;
+  --f-tytul:"Limelight","Didot","Bodoni 72",Georgia,serif;
+  --f-txt:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --f-mono:"Courier Prime","Courier New",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --papier:#12161d; --karta:#1b2029; --karta2:#222834; --linia:#333b49;
+  --atrament:#e7e9e4; --szary:#9aa3ae; --pieczec:#e46a5e; --mosiadz:#d3ae5c; --zielen:#5cbf8c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --papier:#12161d; --karta:#1b2029; --karta2:#222834; --linia:#333b49;
+  --atrament:#e7e9e4; --szary:#9aa3ae; --pieczec:#e46a5e; --mosiadz:#d3ae5c; --zielen:#5cbf8c; color-scheme:dark}
+html{background:var(--papier)}
+body{background:var(--papier);color:var(--atrament);font-family:var(--f-txt);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--papier)}
+.wrap{max-width:660px;margin:0 auto}
+h1,h2{font-family:var(--f-tytul);font-weight:400;line-height:1.05;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:clamp(2.5rem,12vw,4rem)}
+h2{font-size:clamp(1.8rem,7vw,2.4rem)}
+h3{font-family:var(--f-mono);font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--szary);margin:6px 0 0;font-weight:700}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.etykieta{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--szary)}
+.stos{display:flex;flex-direction:column;gap:18px}
+/* pasek */
+.pasek{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--papier);border-bottom:2px solid var(--atrament);
+  display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;margin-bottom:20px;flex-wrap:wrap}
+.pasek .lewy{display:flex;gap:8px}
+.btn{font:inherit;font-family:var(--f-mono);font-size:.86rem;background:var(--karta);color:var(--atrament);border:1.5px solid var(--atrament);
+  border-radius:2px;padding:8px 12px;cursor:pointer;line-height:1.2}
+.btn:hover:not([disabled]){background:var(--karta2)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.opcja:focus-visible,.zeton:focus-visible{outline:3px solid var(--mosiadz);outline-offset:2px}
+.btn.glowny{background:var(--atrament);color:var(--papier);font-weight:700}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+/* okładka */
+.okladka{padding-block:14px 4px;display:flex;flex-direction:column;gap:14px;position:relative}
+.pieczec{display:inline-block;align-self:flex-start;font-family:var(--f-mono);font-weight:700;letter-spacing:.2em;color:var(--pieczec);
+  border:3px solid var(--pieczec);padding:4px 10px;transform:rotate(-4deg);font-size:.9rem}
+.sygn{font-family:var(--f-mono);font-size:.8rem;color:var(--szary);border-top:1px dashed var(--linia);border-bottom:1px dashed var(--linia);padding:6px 0}
+input[type=text],input[type=number],select{font:inherit;font-family:var(--f-mono);background:var(--karta);color:var(--atrament);
+  border:1.5px solid var(--linia);border-radius:2px;padding:9px 10px;min-width:0;width:100%;box-sizing:border-box}
+label.etykieta{display:block}
+/* spis rozdziałów */
+.spis{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.spis li{border-bottom:1px solid var(--linia)}
+.spis button{all:unset;cursor:pointer;display:grid;grid-template-columns:3.2rem 1fr auto;gap:10px;align-items:baseline;padding:12px 2px;width:100%;box-sizing:border-box}
+.spis button:focus-visible{outline:3px solid var(--mosiadz)}
+.spis .w{font-family:var(--f-mono);font-weight:700;color:var(--pieczec);font-size:.9rem}
+.spis .t{font-family:var(--f-txt);font-weight:600;font-size:1.05rem;min-width:0}
+.spis .t small{display:block;font-weight:400;color:var(--szary);font-family:var(--f-mono);font-size:.74rem;letter-spacing:.06em}
+.spis .s{font-family:var(--f-mono);font-size:.78rem;color:var(--szary);white-space:nowrap}
+.spis li.zamkniete .t{color:var(--szary)}
+.spis li.zrobione .s{color:var(--zielen)}
+/* rozdział */
+.telegram{font-family:var(--f-mono);background:var(--karta);border:1px solid var(--linia);padding:14px 16px;font-size:.95rem;line-height:1.6;
+  box-shadow:3px 3px 0 var(--linia)}
+.telegram b{color:var(--pieczec)}
+.karta{background:var(--karta);border-left:3px solid var(--atrament);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.karta h4{margin:0;font-family:var(--f-txt);font-weight:600;font-size:1.02rem}
+.karta ul{margin:0;padding-left:20px}
+.wzor{font-family:var(--f-mono);background:var(--karta2);padding:8px 10px;font-size:.88rem;overflow-x:auto;white-space:pre}
+.replika{display:grid;grid-template-columns:5.2rem 1fr;gap:4px 10px;font-size:.98rem}
+.replika dt{font-family:var(--f-mono);font-weight:700;font-size:.8rem;letter-spacing:.06em;padding-top:3px}
+.replika dd{margin:0;min-width:0}
+.zagadka{background:var(--karta);border:1px solid var(--linia);padding:14px;display:flex;flex-direction:column;gap:10px}
+.zagadka.rozw{border-color:var(--zielen)}
+.zagadka .nr{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.opcje{display:flex;flex-direction:column;gap:8px}
+.opcja{font:inherit;text-align:left;background:var(--papier);color:var(--atrament);border:1.5px solid var(--linia);border-radius:2px;padding:10px 12px;cursor:pointer}
+.opcja:hover:not([disabled]){border-color:var(--atrament)}
+.opcja.zla{border-color:var(--pieczec);color:var(--szary);text-decoration:line-through}
+.opcja.dobra{border-color:var(--zielen);font-weight:600}
+.opcja[disabled]{cursor:default}
+.liczba{display:flex;gap:8px;flex-wrap:wrap}
+.liczba input{flex:1 1 140px;width:auto}
+.wyjasnienie{font-size:.95rem;border-top:1px dashed var(--linia);padding-top:8px}
+.ok{color:var(--zielen)} .zle{color:var(--pieczec)}
+/* układanki */
+.tor{display:flex;flex-wrap:wrap;gap:6px;min-height:46px;padding:8px;border:1.5px dashed var(--linia);background:var(--papier)}
+.pula{display:flex;flex-wrap:wrap;gap:6px}
+.zeton{font:inherit;font-family:var(--f-mono);font-size:.86rem;background:var(--karta2);color:var(--atrament);border:1.5px solid var(--atrament);
+  border-radius:2px;padding:7px 10px;cursor:pointer}
+.tor .zeton{background:var(--atrament);color:var(--papier)}
+.tor .zeton .n{opacity:.6;margin-right:4px}
+.dopasuj{display:grid;grid-template-columns:1fr minmax(8rem,11rem);gap:8px 10px;align-items:center}
+.dopasuj span{min-width:0}
+.para{border:1px dashed var(--mosiadz);padding:12px 14px;background:var(--karta)}
+.nawigacja{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+/* zrzut szesnastkowy */
+.hex{font-family:var(--f-mono);font-size:.86rem;background:var(--karta2);padding:10px;overflow-x:auto;white-space:pre;line-height:1.7}
+.hex .p1{color:var(--pieczec);font-weight:700}.hex .p2{color:var(--zielen);font-weight:700}.hex .p3{color:var(--mosiadz);font-weight:700}
+/* certyfikat */
+.cert{border:3px double var(--atrament);background:var(--karta);padding:22px 18px;display:flex;flex-direction:column;gap:12px;text-align:center;position:relative}
+.cert .imie{font-family:var(--f-tytul);font-size:2rem;line-height:1.1;word-break:break-word}
+.cert ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;text-align:left}
+.cert li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--linia);padding-bottom:4px;font-size:.95rem}
+.cert li span:last-child{font-family:var(--f-mono);color:var(--szary);white-space:nowrap}
+.haiku{font-style:italic;font-size:1.08rem;line-height:1.7}
+.zegar-duzy{font-family:var(--f-mono);font-size:clamp(3rem,18vw,7rem);line-height:1;font-variant-numeric:tabular-nums}
+.plan li{padding:4px 0}.plan li.teraz{color:var(--pieczec);font-weight:700}
+dialog{background:var(--karta);color:var(--atrament);border:2px solid var(--atrament);max-width:620px;width:calc(100% - 32px);max-height:85vh;padding:0}
+dialog::backdrop{background:rgba(10,12,16,.6)}
+dialog .wnetrze{padding:18px;display:flex;flex-direction:column;gap:12px}
+dl.slow{margin:0;display:flex;flex-direction:column;gap:10px}
+dl.slow dt{font-weight:600} dl.slow dd{margin:0;font-size:.95rem;color:var(--szary)}
+@keyframes stempel{0%{transform:scale(1.8) rotate(-12deg);opacity:0}60%{transform:scale(.95) rotate(-4deg);opacity:1}100%{transform:scale(1) rotate(-4deg)}}
+.pieczec.nowa{animation:stempel .45s ease-out}
+@media (prefers-reduced-motion:reduce){.pieczec.nowa{animation:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="pasek" id="pasek">
+    <div class="lewy">
+      <button class="btn" id="btn-spis" type="button">Akta</button>
+      <button class="btn" id="btn-slownik" type="button">Słowniczek</button>
+    </div>
+    <div class="mono" style="display:flex;gap:12px;align-items:center;font-size:.86rem">
+      <span id="zegarek">--:--</span>
+      <span id="punkty" style="color:var(--pieczec);font-weight:700">0 rek.</span>
+    </div>
+  </header>
+  <main id="ekran" class="stos" aria-live="polite"></main>
+</div>
+
+<dialog id="slownik"><div class="wnetrze">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 style="font-size:1.6rem">Słowniczek</h2><button class="btn" type="button" id="zamknij-slownik">Zamknij</button></div>
+  <dl class="slow" id="lista-slownik"></dl>
+</div></dialog>
+
+<script>
+"use strict";
+/* ===================== TREŚĆ ===================== */
+const CZAS_GRY=20; // minut
+const PLAN=[{od:0,do:3},{od:3,do:6},{od:6,do:9},{od:9,do:13},{od:13,do:16},{od:16,do:20}];
+
+const ROZDZIALY=[
+{ w:"PROLOG", tytul:"Pub nad Tamizą", warstwa:"warstwy i protokoły",
+  telegram:`LONDYN STOP TUPEENE ZESŁANY NA BEZLUDNĄ WYSPĘ ZNALAZŁ NA PLAŻY TERMINAL SATELITARNY STOP NĘKA ŚWIAT PRZEZ SIEĆ STOP SPOTKANIE W PUBIE O ÓSMEJ STOP <b>ŚCIŚLE TAJNE</b>`,
+  scena:[["Lupin","Proponuję wrzucić jego pakiety do klatki z lwami w zoo. Szybko, prosto, nikt nie zatęskni."],
+         ["Bond","Wykluczone! Lwy mają swoje prawa. Co one komu zawiniły? Takie pakiety są ciężkostrawne. Wystrzelmy jego pakiety w kosmos, na orbitę geostacjonarną."],
+         ["Sholmes","Sprzeciwiam się z trzech powodów. Po pierwsze, obieg do satelity geostacjonarnego trwa ok. 240 ms i każdy pakiet tylko zyska na dramatyzmie. Po drugie, Tupeene już raz przejął satelitę. Po trzecie, papierologia. Panowie, zanim go złapiemy, musimy zrozumieć, przez co jego pakiety przechodzą. Warstwa po warstwie."]],
+  karty:[`<h4>Protokół i usługa</h4><p><b>Protokół</b> to reguły rozmowy równorzędnych warstw w różnych urządzeniach (w poziomie). <b>Usługa</b> to to, co warstwa daje warstwie wyższej w tym samym urządzeniu (w pionie).</p>`,
+         `<h4>Zasady gry</h4><ul><li>Poprawna odpowiedź za pierwszym razem: <b>10 rekomendacji</b>, za drugim 5, za trzecim 2. Po trzech błędach Sholmes zdradza odpowiedź.</li><li>Kolejny rozdział otwiera się po rozwiązaniu wszystkich zadań poprzedniego.</li><li>Wolno naradzać się z sąsiadem.</li></ul>`],
+  pytania:[
+   {t:"ord",q:"Proszę ułożyć warstwy modelu OSI <b>od dołu</b> (od nr 1). Stuknięcie kafelka dodaje go na koniec, stuknięcie w torze usuwa.",
+    el:["fizyczna","łącza danych","sieciowa","transportowa","sesji","prezentacji","aplikacji"],mix:[4,1,6,2,0,5,3],
+    e:"F Ł S T S P A — „Fryderyk Łowi Sardynki, Tomasz Sprzedaje Pieczone Ananasy”."},
+   {t:"mc",q:"Tłumacz w Londynie i tłumacz w Paryżu nigdy się nie spotkali, ale mają wspólny słownik i zasady przekładu. W modelu warstwowym to:",
+    o:["protokół","usługa","interfejs","medium fizyczne"],a:0,e:"Reguły rozmowy równorzędnych warstw to protokół. Usługa działa w pionie, w jednym urządzeniu."},
+   {t:"mc",q:"Bond chce wiedzieć, w której warstwie OSI działa protokół IP.",
+    o:["3 · sieciowa","2 · łącza danych","4 · transportowa","7 · aplikacji"],a:0,e:"IP to adresy logiczne i trasowanie: warstwa sieciowa."}
+  ]},
+{ w:"W7", tytul:"Książę z Pacyfiku", warstwa:"warstwa aplikacji",
+  telegram:`SKRZYNKI POCZTOWE ZALANE STOP NADAWCA PODAJE SIĘ ZA KSIĘCIA WYSP SALOMONOWYCH I PROSI O PRZELEW STOP LINK PROWADZI DO STRONY UDAJĄCEJ BANK STOP`,
+  scena:[["Sholmes","Elementarne. Zanim przeglądarka ofiary pokazała tę stronę, musiała najpierw zamienić nazwę na adres, a potem nawiązać połączenie. Każdy krok zostawia ślad w innej warstwie."],
+         ["Lupin","Ja w młodości po prostu wchodziłem przez okno. Bez nazw, bez adresów."]],
+  karty:[`<h4>Od nazwy do strony</h4><div class="wzor">DNS (nazwa → adres IP)    UDP, port 53
+TCP: SYN, SYN-ACK, ACK     1 RTT
+TLS 1.3: uzgodnienie      1 RTT
+HTTP: GET / → 200 OK      1 RTT</div><p>Porty: <b>53</b> DNS, <b>80</b> HTTP, <b>443</b> HTTPS, <b>22</b> SSH, <b>25</b> SMTP.</p>`],
+  pytania:[
+   {t:"ord",q:"Proszę ułożyć kroki wejścia ofiary na fałszywą stronę w kolejności, w jakiej zachodzą.",
+    el:["DNS: jaki adres ma ta nazwa?","TCP: uzgodnienie trójetapowe","TLS: uzgodnienie szyfrowania","HTTP: GET /"],mix:[2,0,3,1],
+    e:"Najpierw nazwa → adres, potem połączenie TCP, potem szyfrowanie, na końcu żądanie strony."},
+   {t:"mc",q:"Do czego służy DNS?",o:["Zamienia nazwy domen na adresy IP","Szyfruje strony WWW","Wybiera trasę pakietu","Zamienia adres IP na adres MAC"],a:0,e:"Adres IP → MAC to ARP (rozdział IV)."},
+   {t:"num",q:"Fałszywy „bank” przyjmuje połączenia szyfrowane HTTPS. Na jakim porcie TCP nasłuchuje?",a:443,tol:0,j:"",e:"HTTPS = HTTP przez TLS, standardowo port 443."},
+   {t:"mc",q:"Sholmes mówi: „HTTPS nie dowodzi, że strona należy do banku”. Co naprawdę zapewnia TLS?",
+    o:["Szyfrowanie i to, że łączymy się z właścicielem certyfikatu dla tej nazwy, nawet jeśli nazwa jest podstępna","Że strona jest uczciwa","Że nadawca e-maila jest księciem","Że pakiety nie zginą"],a:0,
+    e:"TLS chroni rozmowę i potwierdza nazwę. Nie ocenia uczciwości właściciela: podobna nazwa z kłódką to wciąż obca strona."}
+  ]},
+{ w:"W4", tytul:"Uścisk dłoni", warstwa:"warstwa transportowa",
+  telegram:`SERWER SCOTLAND YARDU PRZECIĄŻONY STOP TYSIĄCE ROZPOCZĘTYCH POWITAŃ BEZ ODPOWIEDZI STOP SERWER CZEKA UPRZEJMIE NA KAŻDE STOP`,
+  scena:[["Lupin","Nieeleganckie! Ktoś wyciąga rękę, czeka, aż ją uściśniemy, i… odchodzi. Tysiące razy. Gentleman tak nie postępuje."],
+         ["Sholmes","To połówki uzgodnienia trójetapowego TCP. Serwer rezerwuje miejsce dla każdego rozpoczętego połączenia, aż zabraknie miejsca dla uczciwych gości. Obrona istnieje, ale to temat na inny wykład."],
+         ["Bond","A moje rozmowy z centralą? Też przez TCP?"],
+         ["Sholmes","Głos zwykle przez UDP. Spóźnione słowo jest bezużyteczne."]],
+  karty:[`<h4>TCP i UDP</h4><ul><li><b>TCP</b>: połączeniowy, potwierdzenia, retransmisje, kolejność. Nagłówek 20 B.</li><li><b>UDP</b>: bez połączenia i gwarancji, szybki. Nagłówek 8 B.</li><li><b>Port</b> wskazuje program w urządzeniu.</li></ul>`],
+  pytania:[
+   {t:"ord",q:"Proszę ułożyć uzgodnienie trójetapowe TCP, jakie powinien był dokończyć Tupeene.",
+    el:["klient → serwer: SYN","serwer → klient: SYN-ACK","klient → serwer: ACK"],mix:[2,0,1],
+    e:"Tupeene wysyła tylko SYN i nigdy nie odpowiada ACK. Serwer czeka na trzeci krok."},
+   {t:"mc",q:"Dlaczego rozmowy Bonda z centralą (głos) idą zwykle przez UDP?",
+    o:["Spóźniony pakiet głosu jest bezużyteczny, a retransmisje TCP wstrzymałyby rozmowę","UDP szyfruje rozmowy","UDP ma dłuższy nagłówek","TCP nie działa przez satelitę"],a:0,
+    e:"Dla głosu ważniejsze jest małe opóźnienie niż komplet danych."},
+   {t:"num",q:"RTT do serwera Scotland Yardu wynosi 80 ms, do serwera DNS 10 ms. Po ilu ms przyjdzie pierwszy bajt strony przy TCP + TLS 1.3 + HTTP?",
+    a:250,tol:0,j:"ms",e:"10 + 3 × 80 = 250 ms."},
+   {t:"mc",q:"Co w warstwie transportowej wskazuje, do którego programu na serwerze trafią dane?",
+    o:["numer portu","adres MAC","pole TTL","nazwa domeny"],a:0,e:"Adres IP wskazuje budynek, port wskazuje mieszkanie."}
+  ]},
+{ w:"W3", tytul:"Odciski palców w nagłówku", warstwa:"warstwa sieciowa",
+  telegram:`PRZECHWYCONO PAKIET TUPEENE'A STOP POCZĄTEK NAGŁÓWKA W ZAŁĄCZNIKU STOP PROSZĘ USTALIĆ SKĄD I CO NIESIE STOP`,
+  scena:[["Sholmes","Każdy nagłówek to odcisk palca. Pole TTL zdradza, ile routerów pakiet minął."],
+         ["Lupin","Odpowiedzmy mu gołębiem pocztowym. RFC 1149 to przewiduje: IP przez ptaki."],
+         ["Bond","Ptaki mają prawo do odpoczynku i do ośmiogodzinnego dnia lotu. Żadnych gołębi."]],
+  karty:[`<h4>Załącznik: nagłówek IPv4 (pierwsze 20 B)</h4><div class="hex">45 00 05 dc 1c 46 00 00 <span class="p1">2f</span> <span class="p2">11</span> 9a 3e
+<span class="p3">cb 00 71 07</span> c0 a8 01 0a</div>
+<p class="mono" style="font-size:.82rem">bajt 9: <span class="ok">TTL</span> · bajt 10: protokół · bajty 13–16: adres nadawcy · 17–20: adres odbiorcy. Liczby szesnastkowe: 0x2f = 47, 0x11 = 17, 0xcb = 203, 0x71 = 113.</p>`,
+         `<h4>TTL i fragmentacja</h4><p>Każdy router zmniejsza <b>TTL</b> o 1. Pakiet za duży na łącze zostaje pocięty na fragmenty; danych w fragmencie jest co najwyżej MTU − 20 B (wielokrotność 8).</p>`],
+  pytania:[
+   {t:"num",q:"System Tupeene'a startuje z TTL = 64. W przechwyconym pakiecie TTL = 0x2f. Ile routerów pakiet już minął?",a:17,tol:0,j:"routerów",e:"0x2f = 47; 64 − 47 = 17 skoków. Daleko — jak na bezludną wyspę przystało."},
+   {t:"mc",q:"Pole protokołu ma wartość 0x11. Co niesie pakiet?",o:["UDP (17)","TCP (6)","ICMP (1)","Ethernet"],a:0,e:"0x11 = 17 = UDP. TCP ma numer 6."},
+   {t:"mc",q:"Jaki jest adres nadawcy (bajty cb 00 71 07)?",o:["203.0.113.7","192.168.1.10","113.0.203.7","10.20.30.40"],a:0,
+    e:"cb = 203, 00 = 0, 71 = 113, 07 = 7. Nawiasem mówiąc, to adres z puli zarezerwowanej do przykładów w dokumentacji. Tupeene jest przezorny."},
+   {t:"num",q:"Pakiet z nagłówka ma 1500 B (0x05dc). Za wyspą jest łącze satelitarne o MTU 576 B. Na ile fragmentów zostanie pocięty?",a:3,tol:0,j:"",
+    e:"Danych: 1480 B. Na fragment: (576 − 20) zaokrąglone w dół do wielokrotności 8 = 552 B. 552 + 552 + 376 → 3 fragmenty."},
+   {t:"mc",q:"Bond chroni gołębie, ale o czym właściwie mówi RFC 1149?",o:["O przesyłaniu pakietów IP gołębiami pocztowymi — to żart primaaprilisowy z 1990 r., który ktoś naprawdę przetestował","O ochronie ptaków w miastach","O protokole TCP","O łączach satelitarnych"],a:0,
+    e:"I dobrze ilustruje klepsydrę Internetu: IP działa na czymkolwiek, co przeniesie pakiet."}
+  ]},
+{ w:"W2", tytul:"Fałszywy lokaj", warstwa:"warstwa łącza danych",
+  telegram:`W SIECI LOKALNEJ AMBASADY KTOŚ ODPOWIADA NA PYTANIA ARP ZA ROUTER STOP RUCH PŁYNIE PRZEZ CUDZĄ KARTĘ SIECIOWĄ STOP`,
+  scena:[["Sholmes","W sieci lokalnej ambasady pada pytanie: „kto ma adres 10.0.0.1? Niech poda swój MAC”. Odpowiada ktoś, kto routerem nie jest. ARP nie sprawdza tożsamości: wierzy każdemu, kto podniesie rękę."],
+         ["Lupin","Klasyka. Ja też kiedyś przebrałem się za lokaja i otwierano mi wszystkie drzwi."],
+         ["Bond","I tak go namierzymy: przełącznik wie, na którym porcie siedzi każdy adres MAC."]],
+  karty:[`<h4>Adresy na różnych warstwach</h4><ul><li><b>MAC</b> (warstwa 2): zasięg jednego łącza, zmienia się na każdym routerze.</li><li><b>IP</b> (warstwa 3): od nadawcy do odbiorcy, po drodze się nie zmienia (wyjątek: NAT).</li><li><b>ARP</b>: tłumaczy IP na MAC w sieci lokalnej, bez uwierzytelniania.</li></ul>`],
+  pytania:[
+   {t:"dop",q:"Bond przesłuchuje sprzęt w serwerowni ambasady. Do której warstwy zagląda każde urządzenie, żeby podjąć decyzję?",
+    el:[["koncentrator (hub)","1"],["przełącznik","2"],["router","3"],["równoważnik obciążenia czytający żądania HTTP","7"]],kat:["1","2","3","7"],
+    e:"Koncentrator nie decyduje, tylko powtarza bity. Przełącznik czyta MAC, router czyta IP, równoważnik HTTP czyta treść żądań."},
+   {t:"mc",q:"Pakiet z wyspy przechodzi przez 17 routerów. Który adres zmienia się po drodze na każdym z nich?",o:["adres MAC w nagłówku ramki","adres IP odbiorcy","numer portu odbiorcy","nazwa domeny"],a:0,
+    e:"Router zdejmuje ramkę warstwy 2 i zakłada nową dla następnego łącza."},
+   {t:"mc",q:"Dlaczego podszycie się Tupeene'a pod router w ogóle było możliwe?",o:["ARP nie uwierzytelnia odpowiedzi: urządzenia wierzą każdemu, kto odpowie","Bo adres IP był za długi","Bo przełącznik był wyłączony","Bo TTL spadł do zera"],a:0,
+    e:"ARP zaprojektowano dla zaufanych sieci lokalnych. Dlatego sieci firmowe stosują dodatkowe zabezpieczenia w przełącznikach."},
+   {t:"mc",q:"Ile bitów ma adres MAC?",o:["48","32","128","16"],a:0,e:"48 bitów, zapisywanych jako 6 bajtów szesnastkowo. 32 bity ma IPv4, 128 IPv6, 16 numer portu."}
+  ]},
+{ w:"FINAŁ", tytul:"Wyspa w sieci", warstwa:"enkapsulacja i płaszczyzny",
+  telegram:`TUPEENE ZATRZYMANY BEZ OPORU STOP ZDUMIONY WIDOKIEM TRZECH DŻENTELMENÓW W JEDNEJ KAJUCIE STOP CZEKAMY NA DECYZJĘ SHOLMESA STOP`,
+  scena:[["Sholmes","Panowie, rozwiązanie jest starożytne i niezawodne. Bezludna wyspa — tylko że w sieci. Terminal Tupeene'a trafi do odizolowanego segmentu: własna sieć, własny serwer DNS odpowiadający na wszystko „nie”, żadnej trasy na zewnątrz. Będzie miał prąd, wodę i Wi-Fi, bo nie jesteśmy barbarzyńcami. Ale nie będzie kogo oszukać."],
+         ["Lupin","Wyborne. O wiele subtelniejsze niż lwy."],
+         ["Bond","Zwierzęta bezpieczne, budżet też. Wchodzę. Operator przekonfiguruje terminal w płaszczyźnie zarządzania, a sterowanie odetnie mu trasy."]],
+  karty:[`<h4>Koperta w kopercie</h4><p>Każda warstwa dokłada nagłówek. Na łączu Ethernet ramka kosztuje dodatkowo <b>38 B</b> (preambuła 8, nagłówek 14, FCS 4, przerwa 12). Nagłówki: IPv4 20 B, TCP 20 B, UDP 8 B. MTU Ethernetu: 1500 B.</p>`,
+         `<h4>Trzy płaszczyzny</h4><ul><li><b>użytkownika</b>: przenosi dane (film, głos),</li><li><b>sterowania</b>: sygnalizacja, trasy, rejestracja w sieci,</li><li><b>zarządzania</b>: konfiguracja, alarmy, liczniki.</li></ul>`],
+  pytania:[
+   {t:"ord",q:"Proszę zapakować ostatnią wiadomość Tupeene'a od środka na zewnątrz: od danych do ramki.",
+    el:["dane („przepraszam”)","nagłówek TCP","nagłówek IP","nagłówek Ethernet"],mix:[3,1,0,2],
+    e:"Enkapsulacja idzie od góry stosu w dół: dane, segment TCP, pakiet IP, ramka Ethernet."},
+   {t:"num",q:"Przeprosiny Tupeene'a mają 100 B i idą przez UDP/IPv4/Ethernet. Ile bajtów zajmą na łączu (z preambułą i przerwą)?",a:166,tol:0,j:"B",
+    e:"100 + 8 + 20 + 38 = 166 B. Treść to ok. 60%."},
+   {t:"num",q:"Ile wynosi największy ładunek TCP (MSS) w pakiecie IPv4 mieszczącym się w ramce Ethernet?",a:1460,tol:0,j:"B",e:"1500 − 20 (IP) − 20 (TCP) = 1460 B."},
+   {t:"dop",q:"Do której płaszczyzny należy każde działanie przy izolowaniu Tupeene'a?",
+    el:[["przekazywanie jego pakietów z filmami o kotach","użytkownika"],["usunięcie tras na zewnątrz z tablicy trasowania (protokół OSPF)","sterowania"],["zmiana konfiguracji terminala przez SSH","zarządzania"],["rejestracja jego telefonu w sieci komórkowej","sterowania"]],
+    kat:["użytkownika","sterowania","zarządzania"],
+    e:"Dane to płaszczyzna użytkownika; trasy i rejestracja to sygnalizacja, czyli sterowanie; konfiguracja to zarządzanie."},
+   {t:"mc",q:"Ostatnie pytanie Bonda: jak sieć komórkowa przenosi pakiety IP telefonu od stacji bazowej do bramy operatora?",
+    o:["W tunelu GTP-U: pakiet użytkownika staje się ładunkiem pakietu UDP/IP operatora","Gołębiami","Bez żadnych nagłówków","Przez ARP"],a:0,
+    e:"Tunel pozwala przestawić wejście przy zmianie komórki, a adres IP telefonu pozostaje bez zmian."}
+  ]}
+];
+
+const UMIEJETNOSCI=[
+ ["Enkapsulacja i dekapsulacja","Herlock Sholmes"],
+ ["Czytanie nagłówków IPv4 bez okularów","Herlock Sholmes"],
+ ["Etykieta uzgodnienia trójetapowego","Arsène Lupin"],
+ ["Rozpoznawanie fałszywych lokajów (ARP)","Arsène Lupin"],
+ ["Ochrona praw gołębi pocztowych","James Bond"],
+ ["Rozdzielanie płaszczyzn pod presją","James Bond"]
+];
+
+const SLOWNIK=[
+ ["Warstwa","Zbiór funkcji rozwiązujący jeden rodzaj problemu; korzysta z usług warstwy niższej."],
+ ["Protokół","Reguły rozmowy równorzędnych warstw w różnych urządzeniach: składnia, semantyka, synchronizacja."],
+ ["Usługa","To, co warstwa daje warstwie wyższej w tym samym urządzeniu."],
+ ["PDU","Jednostka danych protokołu: bit, ramka, pakiet, segment, dane."],
+ ["Enkapsulacja","Dokładanie nagłówka przez każdą warstwę w nadajniku; dekapsulacja to zdejmowanie nagłówków w odbiorniku."],
+ ["DNS","System nazw domen: zamienia nazwę na adres IP."],
+ ["TCP / UDP","Protokoły transportowe: niezawodny i połączeniowy / szybki, bez gwarancji."],
+ ["Uzgodnienie trójetapowe","Nawiązanie połączenia TCP: SYN, SYN-ACK, ACK."],
+ ["Port","16-bitowy numer wskazujący program w urządzeniu."],
+ ["RTT","Czas obiegu: od wysłania komunikatu do otrzymania odpowiedzi."],
+ ["TTL","Licznik skoków w nagłówku IP; każdy router zmniejsza go o 1."],
+ ["MTU / MSS","Największy pakiet IP w ramce łącza (Ethernet: 1500 B) / największy ładunek TCP (1460 B)."],
+ ["Fragmentacja","Cięcie pakietu IP, który nie mieści się w ramce łącza."],
+ ["Adres MAC","48-bitowy adres karty sieciowej; zasięg jednego łącza."],
+ ["ARP","Protokół zamiany adresu IP na MAC w sieci lokalnej; nie uwierzytelnia odpowiedzi."],
+ ["Płaszczyzny","Użytkownika (dane), sterowania (sygnalizacja, trasy), zarządzania (konfiguracja, nadzór)."],
+ ["GTP-U","Protokół tunelowania danych użytkownika w sieciach komórkowych (UDP, port 2152)."]
+];
+
+/* ===================== STAN ===================== */
+const KLUCZ="sprawa-tupeene-w5";
+let S={start:null,imie:"",odp:{}};
+try{const r=localStorage.getItem(KLUCZ);if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+function zapisz(){try{localStorage.setItem(KLUCZ,JSON.stringify(S));}catch(e){}}
+const qid=(k,i)=>k+"-"+i;
+const wszystkie=()=>ROZDZIALY.flatMap((r,k)=>r.pytania.map((_,i)=>qid(k,i)));
+const maks=()=>wszystkie().length*10;
+const suma=()=>Object.values(S.odp).reduce((s,o)=>s+(o.pkt||0),0);
+const gotowy=k=>ROZDZIALY[k].pytania.every((_,i)=>S.odp[qid(k,i)]&&S.odp[qid(k,i)].koniec);
+const otwarty=k=>k===0||gotowy(k-1);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ===================== ZEGAR ===================== */
+const mmss=ms=>{const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");};
+function tykaj(){
+  const z=document.getElementById("zegarek");
+  if(!S.start){z.textContent="--:--";return;}
+  const ms=Date.now()-S.start,m=ms/60000,i=PLAN.findIndex(p=>m>=p.od&&m<p.do);
+  z.textContent=mmss(ms)+" · "+(m>=CZAS_GRY?"czas na toast":ROZDZIALY[i].w);
+}
+setInterval(tykaj,1000);
+function odswiezPunkty(){document.getElementById("punkty").textContent=suma()+" rek.";}
+
+/* ===================== NAWIGACJA ===================== */
+const E=document.getElementById("ekran");
+function idz(h){if(location.hash==="#"+h)render();else location.hash=h;}
+window.addEventListener("hashchange",render);
+document.getElementById("btn-spis").onclick=()=>idz("akta");
+const dlg=document.getElementById("slownik");
+document.getElementById("btn-slownik").onclick=()=>{try{dlg.showModal();}catch(e){dlg.setAttribute("open","");}};
+document.getElementById("zamknij-slownik").onclick=()=>dlg.close();
+document.getElementById("lista-slownik").innerHTML=SLOWNIK.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join("");
+
+let sprzatanie=null;
+function render(){
+  if(sprzatanie){sprzatanie();sprzatanie=null;}
+  const h=location.hash.replace("#","");
+  document.getElementById("pasek").hidden=(h==="rzutnik");
+  if(h==="rzutnik")return widokRzutnik();
+  if(h==="rekomendacja")return widokCert();
+  const m=h.match(/^rozdzial-(\d)$/);
+  if(m&&ROZDZIALY[+m[1]]&&S.start&&otwarty(+m[1]))return widokRozdzial(+m[1]);
+  widokAkta();
+}
+
+function widokAkta(){
+  const pocz=!S.start;
+  E.innerHTML=`
+  <section class="okladka">
+    <span class="pieczec">ŚCIŚLE TAJNE</span>
+    <span class="etykieta">Architektura systemów telekomunikacyjnych · Wykład 5 · Modele warstwowe i protokoły</span>
+    <h1>Sprawa Tupeene'a</h1>
+    <p>Bond, Lupin i Sholmes raz już pozbyli się łotra Tupeene'a, zsyłając go na bezludną wyspę na Pacyfiku. Teraz Tupeene nęka świat przez sieć. Trzeba przejść za nim przez wszystkie warstwy: od fałszywych wiadomości na górze stosu aż po ramki w sieci lokalnej. Za każde rozwiązane zadanie zbierają Państwo <b>rekomendacje zawodowe</b>.</p>
+    <p class="sygn">Sygn. akt AST/W5/2026 · czas na śledztwo: ${CZAS_GRY} minut · ${wszystkie().length} zadań</p>
+    ${pocz?`<label for="imie" class="etykieta">Imię lub pseudonim agenta (do certyfikatu)</label>
+      <input id="imie" type="text" maxlength="40" placeholder="np. Agentka Ada" value="${esc(S.imie||"")}">
+      <button class="btn glowny" id="start" type="button">Otwieram akta sprawy</button>`
+      :`<p class="mono" style="font-size:.86rem;color:var(--szary)">Agent: <b style="color:var(--atrament)">${esc(S.imie||"bez nazwiska")}</b> · ${suma()} z ${maks()} rekomendacji</p>`}
+  </section>
+  <h3>Spis akt</h3>
+  <ol class="spis">${ROZDZIALY.map((r,i)=>{
+    const st=gotowy(i)?"zrobione":(otwarty(i)?"otwarte":"zamkniete");
+    return `<li class="${st}"><button type="button" data-k="${i}" ${(st==="zamkniete"||pocz)?'aria-disabled="true"':""}>
+      <span class="w">${r.w}</span><span class="t">${r.tytul}<small>${r.warstwa} · min ${PLAN[i].od}–${PLAN[i].do}</small></span>
+      <span class="s">${st==="zrobione"?"zamknięte ✓":st==="zamkniete"?"pod pieczęcią":"otwarte"}</span></button></li>`;}).join("")}
+    <li class="${ROZDZIALY.every((_,i)=>gotowy(i))?"otwarte":"zamkniete"}"><button type="button" data-k="cert">
+      <span class="w">EPILOG</span><span class="t">Toast i rekomendacje<small>certyfikat agenta</small></span><span class="s">🍷</span></button></li>
+  </ol>`;
+  if(pocz)document.getElementById("start").onclick=()=>{S.imie=document.getElementById("imie").value.trim();S.start=Date.now();zapisz();tykaj();idz("rozdzial-0");};
+  E.querySelectorAll(".spis button").forEach(b=>b.onclick=()=>{
+    if(!S.start)return;const k=b.dataset.k;
+    if(k==="cert"){idz("rekomendacja");return;}
+    if(otwarty(+k))idz("rozdzial-"+k);
+  });
+  window.scrollTo(0,0);
+}
+
+function widokRozdzial(k){
+  const R=ROZDZIALY[k];
+  E.innerHTML=`
+   <div class="stos" style="gap:6px"><span class="etykieta">${R.w} · ${R.warstwa}</span><h2>${R.tytul}</h2></div>
+   <div class="telegram"><span class="etykieta" style="display:block;margin-bottom:6px">Telegram</span>${R.telegram}</div>
+   <dl class="replika">${R.scena.map(([kto,co])=>`<dt>${kto.toUpperCase()}</dt><dd>${co}</dd>`).join("")}</dl>
+   ${R.karty.map(c=>`<div class="karta">${c}</div>`).join("")}
+   <h3>Zadania</h3>
+   <div class="stos" id="zadania"></div>
+   <div class="nawigacja" id="nawi"></div>`;
+  const Z=document.getElementById("zadania");
+  R.pytania.forEach((q,i)=>Z.appendChild(zadanie(k,i,q)));
+  nawigacja(k);window.scrollTo(0,0);
+}
+
+function nawigacja(k){
+  const N=document.getElementById("nawi");if(!N)return;
+  const ost=k===ROZDZIALY.length-1;
+  N.innerHTML=`<button class="btn" type="button" id="wstecz">← Akta</button>
+   <button class="btn glowny" type="button" id="dalej" ${gotowy(k)?"":"disabled"}>${ost?"Toast i rekomendacje →":"Następny rozdział →"}</button>`;
+  document.getElementById("wstecz").onclick=()=>idz("akta");
+  document.getElementById("dalej").onclick=()=>{if(gotowy(k))idz(ost?"rekomendacja":"rozdzial-"+(k+1));};
+}
+
+/* ===================== ZADANIA ===================== */
+function tasuj(id,n){ // stała dla danego zadania, ale niezależna od kolejności w danych permutacja odpowiedzi
+  let h=2166136261;for(const c of id+"#")h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;
+  const a=[...Array(n).keys()];
+  for(let i=n-1;i>0;i--){h=Math.imul(h^(h>>>15),2246822519)>>>0;const j=h%(i+1);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+const PKT=[10,5,2];
+function zadanie(k,i,q){
+  const id=qid(k,i),el=document.createElement("div");el.className="zagadka";
+  const o=S.odp[id]||(S.odp[id]={proby:0,koniec:false,pkt:0,zle:[]});
+  let tor=[], wyb=[]; // stan układanki i przyporządkowania
+  function wynik(dobrze,j){
+    if(o.koniec)return;
+    if(dobrze){o.pkt=PKT[o.proby]||0;o.koniec=true;}
+    else{o.proby++;if(j!==undefined)o.zle.push(j);if(o.proby>=3){o.koniec=true;o.pkt=0;}}
+    zapisz();rysuj();odswiezPunkty();nawigacja(k);
+  }
+  function rysuj(){
+    el.classList.toggle("rozw",o.koniec);
+    let srodek="";
+    if(q.t==="mc"){
+      srodek=`<div class="opcje">${tasuj(id,q.o.length).map(j=>{const t=q.o[j];let c="opcja";if(o.zle.includes(j))c+=" zla";if(o.koniec&&j===q.a)c+=" dobra";
+        return `<button type="button" class="${c}" data-j="${j}" ${(o.koniec||o.zle.includes(j))?"disabled":""}>${t}</button>`;}).join("")}</div>`;
+    }else if(q.t==="num"){
+      srodek=`<div class="liczba"><input type="text" inputmode="decimal" id="in-${id}" aria-label="odpowiedź" placeholder="wynik${q.j?" w "+q.j:""}" ${o.koniec?"disabled":""} value="${o.koniec?q.a:""}"><button class="btn" type="button" data-s ${o.koniec?"disabled":""}>Sprawdź</button></div>`;
+    }else if(q.t==="ord"){
+      const pokaz=o.koniec?q.el.map((_,j)=>j):tor;
+      srodek=`<div class="tor" aria-label="ułożona kolejność">${pokaz.length?pokaz.map((j,n)=>`<button type="button" class="zeton" data-t="${n}" ${o.koniec?"disabled":""}><span class="n">${n+1}.</span>${q.el[j]}</button>`).join(""):`<span class="etykieta" style="align-self:center">tu pojawi się kolejność</span>`}</div>
+        ${o.koniec?"":`<div class="pula">${q.mix.filter(j=>!tor.includes(j)).map(j=>`<button type="button" class="zeton" data-p="${j}">${q.el[j]}</button>`).join("")}</div>
+        <div><button class="btn" type="button" data-s ${tor.length===q.el.length?"":"disabled"}>Sprawdź kolejność</button></div>`}`;
+    }else if(q.t==="dop"){
+      srodek=`<div class="dopasuj">${q.el.map(([t,kat],j)=>`<span>${t}</span><select id="s-${id}-${j}" aria-label="${esc(t)}" ${o.koniec?"disabled":""}>
+        <option value="">wybierz…</option>${q.kat.map(c=>`<option ${(o.koniec?c===kat:wyb[j]===c)?"selected":""}>${c}</option>`).join("")}</select>`).join("")}</div>
+        ${o.koniec?"":`<div><button class="btn" type="button" data-s>Sprawdź przyporządkowanie</button></div>`}`;
+    }
+    let stat="";
+    if(o.koniec)stat=o.pkt>0?`<span class="ok mono">+${o.pkt} rek.</span>`:`<span class="mono" style="color:var(--mosiadz)">Sholmes zdradził odpowiedź</span>`;
+    else if(o.proby>0)stat=`<span class="zle mono">pudło ${o.proby}/3</span>`;
+    el.innerHTML=`<div class="nr"><span class="etykieta">Zadanie ${i+1}</span>${stat}</div><p>${q.q}</p>${srodek}<p class="mono zle" data-info hidden></p>
+      ${o.koniec?`<p class="wyjasnienie">${q.e}</p>`:""}`;
+    const info=el.querySelector("[data-info]");
+    if(q.t==="mc")el.querySelectorAll(".opcja").forEach(b=>b.onclick=()=>wynik(+b.dataset.j===q.a,+b.dataset.j));
+    if(q.t==="num"){const inp=el.querySelector("input"),bt=el.querySelector("[data-s]");
+      if(bt){bt.onclick=()=>{const v=parseFloat(inp.value.replace(/\s/g,"").replace(",","."));if(isNaN(v)){inp.focus();return;}wynik(Math.abs(v-q.a)<=q.tol);};
+        inp.onkeydown=ev=>{if(ev.key==="Enter")bt.click();};}}
+    if(q.t==="ord"&&!o.koniec){
+      el.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{tor.push(+b.dataset.p);rysuj();});
+      el.querySelectorAll(".tor [data-t]").forEach(b=>b.onclick=()=>{tor.splice(+b.dataset.t,1);rysuj();});
+      const bt=el.querySelector("[data-s]");
+      if(bt)bt.onclick=()=>{const dobrze=tor.filter((j,n)=>j===n).length;const ok=dobrze===q.el.length;
+        if(!ok){tor=[];wynik(false);const inf=el.querySelector("[data-info]");if(inf&&!o.koniec){inf.hidden=false;inf.textContent=`Na swoim miejscu: ${dobrze} z ${q.el.length}. Proszę spróbować jeszcze raz.`;}}
+        else wynik(true);};
+    }
+    if(q.t==="dop"&&!o.koniec){
+      q.el.forEach((_,j)=>{const s=el.querySelector(`#s-${id}-${j}`);s.onchange=()=>{wyb[j]=s.value;};});
+      el.querySelector("[data-s]").onclick=()=>{
+        const w=q.el.map((_,j)=>el.querySelector(`#s-${id}-${j}`).value);
+        if(w.some(x=>!x)){info.hidden=false;info.textContent="Proszę wybrać odpowiedź w każdym wierszu.";return;}
+        const dobrze=w.filter((x,j)=>x===q.el[j][1]).length;
+        if(dobrze===q.el.length)wynik(true);
+        else{wynik(false);const inf=el.querySelector("[data-info]");if(inf&&!o.koniec){inf.hidden=false;inf.textContent=`Poprawnie: ${dobrze} z ${q.el.length}.`;}}
+      };
+    }
+  }
+  rysuj();return el;
+}
+
+/* ===================== CERTYFIKAT ===================== */
+function kodWer(imie,pkt){let h=5381;const s=(imie||"").trim().toLowerCase()+"|"+pkt+"|AST-W5";for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;return h.toString(36).toUpperCase().slice(-6).padStart(6,"0");}
+function ranga(p){return p>=.9?"Agent 0x07 z licencją na dekapsulację":p>=.75?"Dżentelmen-włamywacz warstw":p>=.5?"Detektyw nagłówków":"Praktykant Scotland Yardu";}
+function widokCert(){
+  const p=suma(),m=maks();
+  if(!S.start||!ROZDZIALY.every((_,i)=>gotowy(i))){E.innerHTML=`<h2>Toast</h2><p>Wino czeka, ale sprawa nie jest jeszcze zamknięta. Proszę dokończyć wszystkie rozdziały.</p><div><button class="btn" type="button" onclick="location.hash='akta'">← Akta</button></div>`;return;}
+  const d=new Date(),pr=p/m;
+  const zdob=UMIEJETNOSCI.slice(0,Math.max(2,Math.round(pr*UMIEJETNOSCI.length)));
+  E.innerHTML=`
+   <div class="stos" style="gap:6px"><span class="etykieta">Epilog · mieszkanie Lupina</span><h2>Toast i rekomendacje</h2></div>
+   <dl class="replika">
+     <dt>NARRATOR</dt><dd>Bond z niewinnym uśmiechem stawia na stole butelkę <b>włoskiego</b> wina. Wie doskonale, że Lupin i Sholmes są koneserami francuskich trunków.</dd>
+     <dt>LUPIN</dt><dd>(upija łyk i z godnością ukrywa tęsknotę za Bordeaux) Za warstwy.</dd>
+     <dt>SHOLMES</dt><dd>I za nagłówki, które nigdy nie kłamią. W przeciwieństwie do ARP.</dd>
+     <dt>NARRATOR</dt><dd>Potem siadają do laptopów i wystawiają sobie nawzajem rekomendacje w serwisie dla profesjonalistów. Jedną z nich dostają Państwo.</dd>
+   </dl>
+   <div class="cert">
+     <span class="pieczec nowa" style="align-self:center">SPRAWA ZAMKNIĘTA</span>
+     <span class="etykieta">Certyfikat rekomendacji · sygn. AST/W5/${d.getFullYear()}</span>
+     <div class="imie">${esc(S.imie||"Agent bez nazwiska")}</div>
+     <p>doprowadził(a) do odizolowania łotra Tupeene'a, przechodząc za nim przez wszystkie warstwy modelu OSI, i otrzymuje</p>
+     <div class="zegar-duzy" style="font-size:3rem">${p} / ${m}</div>
+     <p class="mono">rekomendacji (${Math.round(100*pr)}%) · ranga: <b style="color:var(--pieczec)">${ranga(pr)}</b></p>
+     <ul>${zdob.map(([u,kto])=>`<li><span>${u}</span><span>— ${kto}</span></li>`).join("")}</ul>
+     <p class="mono" style="font-size:.8rem;color:var(--szary)">${d.toLocaleString("pl-PL")} · kod weryfikacyjny: <b style="color:var(--atrament)">${kodWer(S.imie,p)}</b></p>
+   </div>
+   <div class="karta"><span class="etykieta">Sholmes recytuje haiku o przyjaźni angielsko-francuskiej</span>
+     <p class="haiku">Mgła nad Tamizą,<br>pakiet w kopercie płynie —<br>przyjaźń dwóch brzegów.</p></div>
+   <p style="color:var(--szary);font-size:.95rem">Proszę zrobić zrzut ekranu certyfikatu. Wiedza z tej sprawy może pojawić się w quizie na ćwiczeniach.</p>
+   <div class="nawigacja"><button class="btn" type="button" id="dm">← Akta</button></div>`;
+  document.getElementById("dm").onclick=()=>idz("akta");window.scrollTo(0,0);
+}
+
+/* ===================== RZUTNIK ===================== */
+let rzStart=null;
+function widokRzutnik(){
+  E.innerHTML=`<div class="stos" style="padding-top:16px">
+   <span class="etykieta">Tryb rzutnika · Wykład 5</span>
+   <h1>Sprawa Tupeene'a</h1>
+   <div class="zegar-duzy" id="rz-zegar">${String(CZAS_GRY).padStart(2,"0")}:00</div>
+   <div><button class="btn glowny" type="button" id="rz-start">Start śledztwa (${CZAS_GRY} min)</button></div>
+   <ol class="plan" id="rz-plan">${PLAN.map((p,i)=>`<li data-i="${i}"><span class="mono">${p.od}–${p.do} min</span> · ${ROZDZIALY[i].w}: ${ROZDZIALY[i].tytul}</li>`).join("")}</ol>
+   <div class="karta"><h4>Sprawdzenie kodu z certyfikatu</h4>
+     <label class="etykieta" for="w-imie">Imię z certyfikatu</label><input type="text" id="w-imie">
+     <label class="etykieta" for="w-pkt">Liczba rekomendacji</label><input type="number" id="w-pkt">
+     <p class="mono" id="w-kod">Kod: –</p></div></div>`;
+  const z=document.getElementById("rz-zegar");
+  const t=setInterval(()=>{if(!rzStart)return;const ms=CZAS_GRY*60000-(Date.now()-rzStart),m=(Date.now()-rzStart)/60000;
+    z.textContent=ms>0?mmss(ms):"TOAST!";
+    document.querySelectorAll("#rz-plan li").forEach(li=>{const p=PLAN[+li.dataset.i];li.classList.toggle("teraz",m>=p.od&&m<p.do);});},500);
+  document.getElementById("rz-start").onclick=()=>{rzStart=Date.now();};
+  const wk=()=>{document.getElementById("w-kod").textContent="Kod: "+kodWer(document.getElementById("w-imie").value,document.getElementById("w-pkt").value);};
+  document.getElementById("w-imie").oninput=wk;document.getElementById("w-pkt").oninput=wk;
+  sprzatanie=()=>clearInterval(t);
+}
+
+/* ===================== START ===================== */
+if(!location.hash&&S.start)location.hash="akta";
+render();tykaj();odswiezPunkty();
+</script>
+</body>
+</html>
